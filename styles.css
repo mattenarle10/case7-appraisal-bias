@@ -81,12 +81,34 @@ body {
     .title-meta { flex-wrap: wrap; gap: 0.5rem 1rem; }
     .closing-sub { max-width: 100%; }
     .nav-dots, .keyboard-hint { display: none; }
+    /* Leaner breadcrumb on phones — only the active section is shown */
     .breadcrumb { gap: 0.4rem; font-size: 0.6rem; }
+    .breadcrumb span:not(.active) { display: none; }
     /* Viewer is already on mobile — no need to show them a QR of the page they're on */
     .qr-card { display: none; }
     /* Allow slide content to scroll if it overflows on tiny screens */
-    .slide { height: auto; min-height: 100dvh; }
+    .slide {
+        height: auto;
+        min-height: 100dvh;
+        padding-top: max(var(--slide-padding), env(safe-area-inset-top, 0));
+        padding-bottom: max(var(--slide-padding), env(safe-area-inset-bottom, 0));
+        padding-left: max(var(--slide-padding), env(safe-area-inset-left, 0));
+        padding-right: max(var(--slide-padding), env(safe-area-inset-right, 0));
+    }
     .brief-paper { max-height: none; }
+    /* Poll buttons: guarantee 48px+ tap target and full-width bars */
+    .poll-option { min-height: 56px; padding: 1.1rem 1.1rem; }
+    .poll-option-top { gap: 1rem; }
+    .poll-marker { font-size: 2.25rem; min-width: 2.5rem; }
+    .poll-meta { flex-direction: column; gap: 0.25rem; text-align: center; }
+    .poll-meta .poll-sep { display: none; }
+    /* Results slide: keep marker + title + sub + pct from wrapping wrong */
+    .results-row { padding: 1rem 1rem; }
+    .results-row-head { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+    .results-pct { font-size: 2.25rem; }
+    .results-bar { height: 14px; }
+    .results-label { gap: 0.5rem; }
+    .results-insight { font-size: 0.9rem; padding-left: 0.75rem; }
 }
 @media (max-width: 480px) {
     .title-meta { font-size: 0.65rem; }
@@ -98,6 +120,9 @@ body {
     .card-hero { padding: 1.25rem; }
     .insight-block { max-width: 100%; padding: 1.1rem 1.25rem; }
     .insight-text { font-size: 0.95rem; }
+    .ref-text { font-size: 0.7rem; }
+    .poll-title { font-size: 1.35rem; }
+    .results-title { font-size: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
