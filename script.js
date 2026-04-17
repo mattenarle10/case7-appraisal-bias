@@ -8,13 +8,14 @@ const SLIDE_MANIFEST = [
     'slides/02-brief.html',
     'slides/03-situation.html',
     'slides/04-dilemma.html',
-    'slides/05-perspectives.html',
-    'slides/06-analysis.html',
-    'slides/07-recommendation.html',
-    'slides/08-rollout.html',
-    'slides/09-insight.html',
-    'slides/10-references.html',
-    'slides/11-closing.html',
+    'slides/05-poll.html',
+    'slides/06-perspectives.html',
+    'slides/07-analysis.html',
+    'slides/08-recommendation.html',
+    'slides/09-rollout.html',
+    'slides/10-insight.html',
+    'slides/11-references.html',
+    'slides/12-closing.html',
 ];
 
 async function loadSlides() {
@@ -29,7 +30,83 @@ async function loadSlides() {
     );
     container.innerHTML = fragments.join('\n');
     renderQR();
+    setupPoll();
     new SlidePresentation();
+}
+
+/* ===========================================
+   LIVE POLL — Redesign vs Retrain
+   Uses abacus.jasoncameron.dev public counter API.
+   One vote per browser (localStorage gate).
+   =========================================== */
+const POLL_API = 'https://abacus.jasoncameron.dev';
+const POLL_NS = 'mattenarle10-case7-appraisal';
+const POLL_OPTIONS = ['redesign', 'retrain'];
+const POLL_STORAGE_KEY = 'case7-vote';
+let pollInterval = null;
+
+async function pollGet(key) {
+    try {
+        const r = await fetch(`${POLL_API}/get/${POLL_NS}/${key}`);
+        if (!r.ok) return 0;
+        const j = await r.json();
+        return j.value || 0;
+    } catch (e) { return 0; }
+}
+
+async function pollHit(key) {
+    try {
+        const r = await fetch(`${POLL_API}/hit/${POLL_NS}/${key}`);
+        if (!r.ok) return null;
+        const j = await r.json();
+        return j.value;
+    } catch (e) { return null; }
+}
+
+async function refreshPoll() {
+    const values = await Promise.all(POLL_OPTIONS.map(k => pollGet(k)));
+    const total = values.reduce((a, b) => a + b, 0);
+    POLL_OPTIONS.forEach((key, i) => {
+        const countEl = document.querySelector(`[data-count="${key}"]`);
+        const pctEl = document.querySelector(`[data-pct="${key}"]`);
+        const barEl = document.querySelector(`[data-for="${key}"]`);
+        if (countEl) countEl.textContent = values[i];
+        const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (barEl) barEl.style.width = pct + '%';
+    });
+}
+
+function setupPoll() {
+    const buttons = document.querySelectorAll('.poll-option');
+    if (!buttons.length) return;
+    const statusEl = document.getElementById('pollStatus');
+    const voted = localStorage.getItem(POLL_STORAGE_KEY);
+
+    buttons.forEach(btn => {
+        const opt = btn.dataset.option;
+        if (voted) {
+            btn.disabled = true;
+            if (voted === opt) btn.classList.add('voted');
+        }
+        btn.addEventListener('click', async () => {
+            if (localStorage.getItem(POLL_STORAGE_KEY)) return;
+            localStorage.setItem(POLL_STORAGE_KEY, opt);
+            btn.classList.add('voted');
+            buttons.forEach(b => b.disabled = true);
+            if (statusEl) statusEl.textContent = `You voted: ${opt.toUpperCase()}`;
+            await pollHit(opt);
+            refreshPoll();
+        });
+    });
+
+    if (voted && statusEl) statusEl.textContent = `You voted: ${voted.toUpperCase()}`;
+    refreshPoll();
+
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(() => {
+        if (!document.hidden) refreshPoll();
+    }, 2500);
 }
 
 const SITE_URL = 'https://mattenarle10.github.io/case7-appraisal-bias/';

@@ -743,6 +743,101 @@ body {
 @media (max-width: 700px) { .compare-grid { grid-template-columns: 1fr; } }
 
 /* ===========================================
+   LIVE POLL
+   =========================================== */
+.poll-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(0.75rem, 2vw, 1.75rem);
+    margin-top: var(--element-gap);
+}
+.poll-option {
+    background: var(--bg-raised);
+    border: 1px solid var(--border-subtle);
+    border-top: 4px solid var(--card-bg);
+    border-radius: 4px;
+    padding: clamp(1.1rem, 2.4vw, 1.75rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(0.4rem, 1vw, 0.7rem);
+    cursor: pointer;
+    color: inherit;
+    font-family: inherit;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s var(--ease-out-expo), border-color 0.3s, background 0.3s;
+}
+.poll-option.yellow { border-top-color: var(--card-alt); }
+.poll-option:hover:not(:disabled) {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.05);
+}
+.poll-option.orange:hover:not(:disabled) { border-color: var(--card-bg); }
+.poll-option.yellow:hover:not(:disabled) { border-color: var(--card-alt); }
+.poll-option:disabled { cursor: default; opacity: 0.9; }
+.poll-option.voted { outline: 2px solid var(--card-bg); outline-offset: -2px; background: rgba(255,87,34,0.06); }
+.poll-option.yellow.voted { outline-color: var(--card-alt); background: rgba(230,184,0,0.06); }
+.poll-marker {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 0.85;
+    color: var(--card-bg);
+    letter-spacing: -0.03em;
+}
+.poll-option.yellow .poll-marker { color: var(--card-alt); }
+.poll-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.25rem, 2.8vw, 2rem);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    line-height: 1;
+}
+.poll-sub {
+    font-family: var(--font-mono);
+    font-size: var(--small-size);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+.poll-bar {
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 0.6rem;
+}
+.poll-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--card-bg);
+    border-radius: 5px;
+    transition: width 0.7s var(--ease-out-expo);
+}
+.poll-option.yellow .poll-bar-fill { background: var(--card-alt); }
+.poll-count {
+    font-family: var(--font-mono);
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    letter-spacing: 0.1em;
+}
+.poll-count [data-count], .poll-count [data-pct] {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+.poll-meta {
+    margin-top: var(--content-gap);
+    font-family: var(--font-mono);
+    font-size: var(--small-size);
+    color: var(--text-secondary);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+}
+.poll-meta #pollStatus { color: var(--card-bg); }
+@media (max-width: 700px) { .poll-grid { grid-template-columns: 1fr; } }
+
+/* ===========================================
    PHASE TIMELINE
    =========================================== */
 .phase-list {
