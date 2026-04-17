@@ -11,11 +11,12 @@ const SLIDE_MANIFEST = [
     'slides/05-poll.html',
     'slides/06-perspectives.html',
     'slides/07-analysis.html',
-    'slides/08-recommendation.html',
-    'slides/09-rollout.html',
-    'slides/10-insight.html',
-    'slides/11-references.html',
-    'slides/12-closing.html',
+    'slides/08-poll-results.html',
+    'slides/09-recommendation.html',
+    'slides/10-rollout.html',
+    'slides/11-insight.html',
+    'slides/12-references.html',
+    'slides/13-closing.html',
 ];
 
 async function loadSlides() {
@@ -67,14 +68,14 @@ async function refreshPoll() {
     const values = await Promise.all(POLL_OPTIONS.map(k => pollGet(k)));
     const total = values.reduce((a, b) => a + b, 0);
     POLL_OPTIONS.forEach((key, i) => {
-        const countEl = document.querySelector(`[data-count="${key}"]`);
-        const pctEl = document.querySelector(`[data-pct="${key}"]`);
-        const barEl = document.querySelector(`[data-for="${key}"]`);
-        if (countEl) countEl.textContent = values[i];
+        // querySelectorAll so BOTH the poll slide and results slide update
+        document.querySelectorAll(`[data-count="${key}"]`).forEach(el => el.textContent = values[i]);
         const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
-        if (pctEl) pctEl.textContent = pct + '%';
-        if (barEl) barEl.style.width = pct + '%';
+        document.querySelectorAll(`[data-pct="${key}"]`).forEach(el => el.textContent = pct + '%');
+        document.querySelectorAll(`[data-for="${key}"]`).forEach(el => el.style.width = pct + '%');
     });
+    const totalEl = document.getElementById('resultsTotal');
+    if (totalEl) totalEl.textContent = total;
 }
 
 function setupPoll() {

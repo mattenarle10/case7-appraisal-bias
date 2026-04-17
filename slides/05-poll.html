@@ -1,6 +1,9 @@
-<!-- SLIDE 5 — LIVE POLL -->
-<section class="slide" data-slide-title="Live Poll">
-    <div class="slide-number reveal">LIVE POLL</div>
+<!-- SLIDE 5 — LIVE POLL (interlude between dilemma and analysis) -->
+<section class="slide poll-slide" data-slide-title="Live Poll">
+    <div class="bg-shape circle-outline poll-bg-1"></div>
+    <div class="bg-shape bar poll-bg-2"></div>
+
+    <div class="slide-number reveal">&mdash; LIVE POLL</div>
     <div class="breadcrumb reveal">
         <span class="active">CASE</span>
         <span>ANALYSIS</span>
@@ -9,28 +12,54 @@
     </div>
 
     <div class="slide-inner">
-        <div class="section-eyebrow reveal">YOU DECIDE</div>
-        <h2 class="section-heading reveal">If you had to pick one &mdash; which fixes it?</h2>
+        <div class="section-eyebrow reveal">YOUR CALL, FIRST</div>
+        <h2 class="section-heading reveal">Before we answer &mdash; which would <em class="accent-coral">you</em> pick?</h2>
+        <p class="poll-lead reveal">One tap. Anonymous. Your classmates' votes appear live below.</p>
 
         <div class="poll-grid">
-            <button type="button" class="poll-option orange reveal" data-option="redesign" aria-label="Vote redesign">
-                <div class="poll-marker">A</div>
-                <div class="poll-title">REDESIGN</div>
-                <div class="poll-sub">Fix the tool</div>
-                <div class="poll-bar"><div class="poll-bar-fill" data-for="redesign"></div></div>
-                <div class="poll-count"><span data-count="redesign">0</span> votes &middot; <span data-pct="redesign">0%</span></div>
+            <button type="button" class="poll-option orange reveal" data-option="redesign" aria-label="Vote for redesign">
+                <div class="poll-option-top">
+                    <span class="poll-marker">A</span>
+                    <div class="poll-text">
+                        <div class="poll-title">Redesign</div>
+                        <div class="poll-sub">Fix the tool</div>
+                    </div>
+                </div>
+                <div class="poll-result">
+                    <div class="poll-bar"><div class="poll-bar-fill" data-for="redesign"></div></div>
+                    <div class="poll-count">
+                        <strong data-count="redesign">0</strong> votes
+                        <span class="poll-sep">&middot;</span>
+                        <strong data-pct="redesign">0%</strong>
+                    </div>
+                </div>
             </button>
-            <button type="button" class="poll-option yellow reveal" data-option="retrain" aria-label="Vote retrain">
-                <div class="poll-marker">B</div>
-                <div class="poll-title">RETRAIN</div>
-                <div class="poll-sub">Fix the hands</div>
-                <div class="poll-bar"><div class="poll-bar-fill" data-for="retrain"></div></div>
-                <div class="poll-count"><span data-count="retrain">0</span> votes &middot; <span data-pct="retrain">0%</span></div>
+
+            <button type="button" class="poll-option yellow reveal" data-option="retrain" aria-label="Vote for retrain">
+                <div class="poll-option-top">
+                    <span class="poll-marker">B</span>
+                    <div class="poll-text">
+                        <div class="poll-title">Retrain</div>
+                        <div class="poll-sub">Fix the hands</div>
+                    </div>
+                </div>
+                <div class="poll-result">
+                    <div class="poll-bar"><div class="poll-bar-fill" data-for="retrain"></div></div>
+                    <div class="poll-count">
+                        <strong data-count="retrain">0</strong> votes
+                        <span class="poll-sep">&middot;</span>
+                        <strong data-pct="retrain">0%</strong>
+                    </div>
+                </div>
             </button>
         </div>
 
         <div class="poll-meta reveal">
-            <span id="pollStatus">Tap a card to vote</span> &middot; live results every 2s
+            <span class="poll-live"><span class="poll-live-dot"></span> LIVE</span>
+            <span class="poll-sep">&middot;</span>
+            <span id="pollStatus">Tap a card to vote</span>
+            <span class="poll-sep">&middot;</span>
+            <span>One vote per device &middot; updates every 2s</span>
         </div>
     </div>
 </section>
