@@ -37,13 +37,15 @@ async function loadSlides() {
 /* ===========================================
    LIVE POLL — Redesign vs Retrain
    Uses abacus.jasoncameron.dev public counter API.
-   One vote per browser (localStorage gate).
    =========================================== */
 const POLL_API = 'https://abacus.jasoncameron.dev';
 const POLL_NS = 'mattenarle10-case7-v3';
 const POLL_OPTIONS = ['redesign', 'retrain'];
 const POLL_STORAGE_KEY = 'case7-vote-v3';
+const POLL_INTERVAL_MS = 3000;
+const POLL_FETCH_TIMEOUT_MS = 5000;
 let pollInterval = null;
+let voteInFlight = false;
 
 function animateNumber(el, to, suffix = '') {
     const from = parseInt((el.textContent || '0').replace(/\D/g, ''), 10) || 0;
@@ -60,41 +62,128 @@ function animateNumber(el, to, suffix = '') {
     requestAnimationFrame(tick);
 }
 
-async function pollGet(key) {
+async function fetchWithTimeout(url, ms = POLL_FETCH_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
     try {
-        const r = await fetch(`${POLL_API}/get/${POLL_NS}/${key}`);
-        if (!r.ok) return 0;
-        const j = await r.json();
-        return j.value || 0;
-    } catch (e) { return 0; }
+        const r = await fetch(url, { signal: controller.signal });
+        return r;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
-async function pollHit(key) {
+async function pollGet(key) {
     try {
-        const r = await fetch(`${POLL_API}/hit/${POLL_NS}/${key}`);
-        if (!r.ok) return null;
+        const r = await fetchWithTimeout(`${POLL_API}/get/${POLL_NS}/${key}`);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const j = await r.json();
+        return j.value || 0;
+    } catch (e) {
+        throw e;
+    }
+}
+
+async function pollHit(key, retry = true) {
+    try {
+        const r = await fetchWithTimeout(`${POLL_API}/hit/${POLL_NS}/${key}`);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         const j = await r.json();
         return j.value;
-    } catch (e) { return null; }
+    } catch (e) {
+        if (retry) {
+            await new Promise(res => setTimeout(res, 400));
+            return pollHit(key, false);
+        }
+        throw e;
+    }
+}
+
+function updateOptionDisplay(key, value, total) {
+    const pct = total > 0 ? Math.round((value / total) * 100) : 0;
+    document.querySelectorAll(`[data-count="${key}"]`).forEach(el => animateNumber(el, value));
+    document.querySelectorAll(`[data-pct="${key}"]`).forEach(el => animateNumber(el, pct, '%'));
+    document.querySelectorAll(`[data-for="${key}"]`).forEach(el => el.style.width = pct + '%');
+    return pct;
 }
 
 async function refreshPoll() {
-    const values = await Promise.all(POLL_OPTIONS.map(k => pollGet(k)));
-    const total = values.reduce((a, b) => a + b, 0);
-    POLL_OPTIONS.forEach((key, i) => {
-        const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
-        document.querySelectorAll(`[data-count="${key}"]`).forEach(el => animateNumber(el, values[i]));
-        document.querySelectorAll(`[data-pct="${key}"]`).forEach(el => animateNumber(el, pct, '%'));
-        document.querySelectorAll(`[data-for="${key}"]`).forEach(el => el.style.width = pct + '%');
+    try {
+        const values = await Promise.all(POLL_OPTIONS.map(k => pollGet(k)));
+        const total = values.reduce((a, b) => a + b, 0);
+        POLL_OPTIONS.forEach((key, i) => updateOptionDisplay(key, values[i], total));
+        const totalEl = document.getElementById('resultsTotal');
+        if (totalEl) animateNumber(totalEl, total);
+        setLiveState('live');
+    } catch (e) {
+        setLiveState('offline');
+    }
+}
+
+function setLiveState(state) {
+    document.querySelectorAll('.poll-live').forEach(el => {
+        el.classList.remove('is-live', 'is-offline', 'is-idle');
+        el.classList.add('is-' + state);
+        const label = el.querySelector('.poll-live-label');
+        if (label) {
+            label.textContent =
+                state === 'live' ? 'LIVE' :
+                state === 'offline' ? 'OFFLINE' : 'PAUSED';
+        }
     });
-    const totalEl = document.getElementById('resultsTotal');
-    if (totalEl) animateNumber(totalEl, total);
+}
+
+function setPollStatus(text, variant = '') {
+    const el = document.getElementById('pollStatus');
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove('is-error', 'is-success', 'is-voting');
+    if (variant) el.classList.add('is-' + variant);
+}
+
+function startPolling() {
+    if (pollInterval) return;
+    refreshPoll();
+    pollInterval = setInterval(() => {
+        if (!document.hidden) refreshPoll();
+    }, POLL_INTERVAL_MS);
+}
+
+function stopPolling() {
+    if (!pollInterval) return;
+    clearInterval(pollInterval);
+    pollInterval = null;
+    setLiveState('idle');
+}
+
+function watchPollVisibility() {
+    const pollSlide = document.querySelector('.poll-slide');
+    const resultsSlide = document.querySelector('.results-slide');
+    if (!pollSlide && !resultsSlide) return;
+    const visible = new Set();
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+                visible.add(entry.target);
+            } else {
+                visible.delete(entry.target);
+            }
+        });
+        if (visible.size > 0) startPolling(); else stopPolling();
+    }, { threshold: [0.3, 0.6] });
+    if (pollSlide) observer.observe(pollSlide);
+    if (resultsSlide) observer.observe(resultsSlide);
 }
 
 function setupPoll() {
     const buttons = document.querySelectorAll('.poll-option');
     if (!buttons.length) return;
-    const statusEl = document.getElementById('pollStatus');
+
+    // Test-mode reset: ?reset=1 clears local vote so Matt can rehearse.
+    if (new URLSearchParams(location.search).has('reset')) {
+        localStorage.removeItem(POLL_STORAGE_KEY);
+    }
+
     const voted = localStorage.getItem(POLL_STORAGE_KEY);
 
     buttons.forEach(btn => {
@@ -104,23 +193,44 @@ function setupPoll() {
             if (voted === opt) btn.classList.add('voted');
         }
         btn.addEventListener('click', async () => {
+            if (voteInFlight) return;
             if (localStorage.getItem(POLL_STORAGE_KEY)) return;
-            localStorage.setItem(POLL_STORAGE_KEY, opt);
-            btn.classList.add('voted');
+            voteInFlight = true;
+            setPollStatus('Voting…', 'voting');
             buttons.forEach(b => b.disabled = true);
-            if (statusEl) statusEl.textContent = `You voted: ${opt.toUpperCase()}`;
-            await pollHit(opt);
-            refreshPoll();
+            try {
+                const newValue = await pollHit(opt);
+                // Commit locally only after server confirmed.
+                localStorage.setItem(POLL_STORAGE_KEY, opt);
+                btn.classList.add('voted');
+                setPollStatus(`You voted: ${opt.toUpperCase()}`, 'success');
+                // Instant optimistic update using /hit's returned value for this option.
+                // refreshPoll() then fills in the other option + percentages.
+                const otherKey = POLL_OPTIONS.find(k => k !== opt);
+                let otherValue = 0;
+                try { otherValue = await pollGet(otherKey); } catch (_) {}
+                const total = newValue + otherValue;
+                updateOptionDisplay(opt, newValue, total);
+                updateOptionDisplay(otherKey, otherValue, total);
+                const totalEl = document.getElementById('resultsTotal');
+                if (totalEl) animateNumber(totalEl, total);
+                setLiveState('live');
+            } catch (e) {
+                // Don't mark voted. Re-enable unvoted buttons so they can retry.
+                setPollStatus("Vote didn't register — tap again", 'error');
+                buttons.forEach(b => {
+                    if (!localStorage.getItem(POLL_STORAGE_KEY)) b.disabled = false;
+                });
+                setLiveState('offline');
+            } finally {
+                voteInFlight = false;
+            }
         });
     });
 
-    if (voted && statusEl) statusEl.textContent = `You voted: ${voted.toUpperCase()}`;
-    refreshPoll();
+    if (voted) setPollStatus(`You voted: ${voted.toUpperCase()}`, 'success');
 
-    if (pollInterval) clearInterval(pollInterval);
-    pollInterval = setInterval(() => {
-        if (!document.hidden) refreshPoll();
-    }, 2500);
+    watchPollVisibility();
 }
 
 
