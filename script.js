@@ -32,10 +32,12 @@ async function loadSlides() {
     new SlidePresentation();
 }
 
+const SITE_URL = 'https://mattenarle10.github.io/case7-appraisal-bias/';
+
 function renderQR() {
     const canvas = document.getElementById('qrCanvas');
     if (!canvas || typeof QRCode === 'undefined') return;
-    QRCode.toCanvas(canvas, window.location.href, {
+    QRCode.toCanvas(canvas, SITE_URL, {
         width: 120,
         margin: 1,
         color: { dark: '#1a1a1a', light: '#f5f3ee' },

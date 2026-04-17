@@ -76,20 +76,28 @@ body {
 }
 @media (max-width: 600px) {
     :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
-    .title-subtitle { max-width: 100%; }
+    .title-subtitle { max-width: 100%; font-size: 0.95rem; }
+    .title-main { max-width: 100%; }
     .title-meta { flex-wrap: wrap; gap: 0.5rem 1rem; }
     .closing-sub { max-width: 100%; }
     .nav-dots, .keyboard-hint { display: none; }
     .breadcrumb { gap: 0.4rem; font-size: 0.6rem; }
-    .qr-card { padding: 0.5rem !important; }
-    .qr-card canvas { width: 72px !important; height: 72px !important; }
-    .qr-label { font-size: 0.55rem !important; }
+    /* Viewer is already on mobile — no need to show them a QR of the page they're on */
+    .qr-card { display: none; }
+    /* Allow slide content to scroll if it overflows on tiny screens */
+    .slide { height: auto; min-height: 100dvh; }
+    .brief-paper { max-height: none; }
 }
 @media (max-width: 480px) {
     .title-meta { font-size: 0.65rem; }
     .pov-grid { gap: 0.5rem; }
-    .phase-item { padding: 0.6rem 0.8rem; grid-template-columns: auto 1fr; }
-    .phase-badge { grid-column: 1 / -1; min-width: 0; }
+    .phase-item { padding: 0.7rem 0.9rem; grid-template-columns: auto 1fr; gap: 0.6rem 0.75rem; }
+    .phase-badge { grid-column: 1 / -1; min-width: 0; font-size: 0.6rem; }
+    .phase-number { font-size: 1.75rem; min-width: 28px; }
+    .stat-big { font-size: clamp(5rem, 28vw, 9rem); }
+    .card-hero { padding: 1.25rem; }
+    .insight-block { max-width: 100%; padding: 1.1rem 1.25rem; }
+    .insight-text { font-size: 0.95rem; }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
