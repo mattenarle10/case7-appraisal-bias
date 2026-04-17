@@ -24,9 +24,14 @@
         <div>MBA <strong>212B</strong></div>
     </div>
 
-    <!-- Dynamic QR: points to window.location.href at runtime -->
+    <!-- QR to live deck — server-rendered image so no CDN dependency -->
     <div class="qr-card reveal" aria-label="Scan to view on mobile">
-        <canvas id="qrCanvas" width="120" height="120"></canvas>
+        <img
+            class="qr-img"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=2&data=https%3A%2F%2Fmattenarle10.github.io%2Fcase7-appraisal-bias%2F&color=1a1a1a&bgcolor=f5f3ee"
+            width="180" height="180"
+            alt="Scan to open this deck on your phone"
+            loading="eager" />
         <div class="qr-label">Scan to view</div>
     </div>
 </section>

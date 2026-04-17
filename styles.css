@@ -259,22 +259,28 @@ body {
     bottom: calc(var(--slide-padding) + clamp(0.5rem, 2vh, 1.5rem));
     right: var(--slide-padding);
     background: #f5f3ee;
-    padding: clamp(0.6rem, 1vw, 0.9rem);
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    padding: clamp(0.75rem, 1.2vw, 1rem);
+    border-radius: 6px;
+    box-shadow: 0 14px 40px rgba(0,0,0,0.4);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.55rem;
     z-index: 3;
     transition: transform 0.3s var(--ease-out-expo);
 }
 .qr-card:hover { transform: translateY(-3px) scale(1.03); }
-.qr-card canvas { display: block; border-radius: 2px; }
+.qr-card .qr-img {
+    display: block;
+    width: clamp(140px, 12vw, 180px);
+    height: clamp(140px, 12vw, 180px);
+    border-radius: 2px;
+    background: #f5f3ee;
+}
 .qr-label {
     font-family: var(--font-display);
-    font-size: clamp(0.55rem, 0.8vw, 0.7rem);
-    letter-spacing: 0.2em;
+    font-size: clamp(0.65rem, 0.9vw, 0.8rem);
+    letter-spacing: 0.22em;
     color: #1a1a1a;
     text-transform: uppercase;
 }

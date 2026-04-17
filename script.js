@@ -30,7 +30,6 @@ async function loadSlides() {
         )
     );
     container.innerHTML = fragments.join('\n');
-    renderQR();
     setupPoll();
     new SlidePresentation();
 }
@@ -41,10 +40,25 @@ async function loadSlides() {
    One vote per browser (localStorage gate).
    =========================================== */
 const POLL_API = 'https://abacus.jasoncameron.dev';
-const POLL_NS = 'mattenarle10-case7-appraisal';
+const POLL_NS = 'mattenarle10-case7-v3';
 const POLL_OPTIONS = ['redesign', 'retrain'];
-const POLL_STORAGE_KEY = 'case7-vote';
+const POLL_STORAGE_KEY = 'case7-vote-v3';
 let pollInterval = null;
+
+function animateNumber(el, to, suffix = '') {
+    const from = parseInt((el.textContent || '0').replace(/\D/g, ''), 10) || 0;
+    if (from === to) { el.textContent = to + suffix; return; }
+    const duration = 600;
+    const start = performance.now();
+    const tick = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = Math.round(from + (to - from) * eased);
+        el.textContent = value + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+}
 
 async function pollGet(key) {
     try {
@@ -68,14 +82,13 @@ async function refreshPoll() {
     const values = await Promise.all(POLL_OPTIONS.map(k => pollGet(k)));
     const total = values.reduce((a, b) => a + b, 0);
     POLL_OPTIONS.forEach((key, i) => {
-        // querySelectorAll so BOTH the poll slide and results slide update
-        document.querySelectorAll(`[data-count="${key}"]`).forEach(el => el.textContent = values[i]);
         const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
-        document.querySelectorAll(`[data-pct="${key}"]`).forEach(el => el.textContent = pct + '%');
+        document.querySelectorAll(`[data-count="${key}"]`).forEach(el => animateNumber(el, values[i]));
+        document.querySelectorAll(`[data-pct="${key}"]`).forEach(el => animateNumber(el, pct, '%'));
         document.querySelectorAll(`[data-for="${key}"]`).forEach(el => el.style.width = pct + '%');
     });
     const totalEl = document.getElementById('resultsTotal');
-    if (totalEl) totalEl.textContent = total;
+    if (totalEl) animateNumber(totalEl, total);
 }
 
 function setupPoll() {
@@ -110,17 +123,6 @@ function setupPoll() {
     }, 2500);
 }
 
-const SITE_URL = 'https://mattenarle10.github.io/case7-appraisal-bias/';
-
-function renderQR() {
-    const canvas = document.getElementById('qrCanvas');
-    if (!canvas || typeof QRCode === 'undefined') return;
-    QRCode.toCanvas(canvas, SITE_URL, {
-        width: 120,
-        margin: 1,
-        color: { dark: '#1a1a1a', light: '#f5f3ee' },
-    }, (err) => { if (err) console.error(err); });
-}
 
 class SlidePresentation {
     constructor() {
