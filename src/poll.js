@@ -10,7 +10,7 @@ import { observeIntersection } from './hooks/useIntersection.js';
 import { createLocalStorageKey } from './hooks/useLocalStorage.js';
 import { animateNumber } from './animations.js';
 
-const STORAGE_KEY = 'case7-vote-v3';
+const STORAGE_KEY = 'case7-vote-v4';
 const POLL_INTERVAL_MS = 3000;
 const storage = createLocalStorageKey(STORAGE_KEY);
 

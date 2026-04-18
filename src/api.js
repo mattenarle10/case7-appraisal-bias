@@ -3,7 +3,7 @@
  * Thin wrapper with timeout + retry — the rest of the app uses only these exports.
  */
 const BASE = 'https://abacus.jasoncameron.dev';
-const NAMESPACE = 'mattenarle10-case7-v3';
+const NAMESPACE = 'mattenarle10-case7-v4';
 const TIMEOUT_MS = 5000;
 
 export const POLL_OPTIONS = ['redesign', 'retrain'];
