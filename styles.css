@@ -35,6 +35,9 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* Global touch niceties — kill 300ms delay + gray tap flash on mobile */
+a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
 html, body { height: 100%; overflow-x: hidden; }
 html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 body {
@@ -74,19 +77,26 @@ body {
     }
     .nav-dots, .keyboard-hint { display: none; }
 }
-@media (max-width: 600px) {
-    :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
-    .title-subtitle { max-width: 100%; font-size: 0.95rem; }
-    .title-main { max-width: 100%; }
-    .title-meta { flex-wrap: wrap; gap: 0.5rem 1rem; }
-    .closing-sub { max-width: 100%; }
-    .nav-dots, .keyboard-hint { display: none; }
-    /* Leaner breadcrumb on phones — only the active section is shown */
-    .breadcrumb { gap: 0.4rem; font-size: 0.6rem; }
-    .breadcrumb span:not(.active) { display: none; }
-    /* Viewer is already on mobile — no need to show them a QR of the page they're on */
+/* QR is for desktop audience to scan → mobile. Hide on phones AND portrait
+   tablets where it'd crowd the title slide or be redundant. */
+@media (max-width: 767px),
+       (orientation: portrait) and (max-width: 1024px) {
     .qr-card { display: none; }
-    /* Allow slide content to scroll if it overflows on tiny screens */
+}
+
+/* === Mobile polish (<= 600px) === */
+@media (max-width: 600px) {
+    :root {
+        --title-size: clamp(1.25rem, 7vw, 2.5rem);
+    }
+    /* Snappier reveals on mobile */
+    .reveal { transform: translateY(16px); }
+
+    /* Chrome: breadcrumb off, slide-number stays. Progress bar still shows. */
+    .breadcrumb { display: none; }
+    .nav-dots, .keyboard-hint { display: none; }
+
+    /* Allow content to scroll if it overflows + notch-safe padding */
     .slide {
         height: auto;
         min-height: 100dvh;
@@ -95,28 +105,49 @@ body {
         padding-left: max(var(--slide-padding), env(safe-area-inset-left, 0));
         padding-right: max(var(--slide-padding), env(safe-area-inset-right, 0));
     }
+
+    /* Title slide */
+    .title-main { max-width: 100%; }
+    .title-subtitle { max-width: 100%; font-size: clamp(0.9rem, 4vw, 1.1rem); }
+    .title-meta { flex-wrap: wrap; gap: 0.5rem 1rem; }
+    .title-eyebrow-wrap { margin-top: clamp(1rem, 4vh, 2rem); }
+
+    /* Brief paper: tab flush at top, no clipping */
     .brief-paper { max-height: none; }
-    /* Poll buttons: guarantee 48px+ tap target and full-width bars */
-    .poll-option { min-height: 56px; padding: 1.1rem 1.1rem; }
+    .brief-paper::before { top: 0; }
+
+    /* Stat 70%: smaller min so caption breathes */
+    .stat-big { font-size: clamp(5rem, 24vw, 12rem); }
+
+    /* Softer watermark digit on dilemma / recommendation cards */
+    .card-watermark { opacity: 0.05; }
+
+    /* Poll: larger tap target, tighter meta */
+    .poll-option { min-height: 56px; padding: 1.1rem; }
     .poll-option-top { gap: 1rem; }
     .poll-marker { font-size: 2.25rem; min-width: 2.5rem; }
     .poll-meta { flex-direction: column; gap: 0.25rem; text-align: center; }
     .poll-meta .poll-sep { display: none; }
-    /* Results slide: keep marker + title + sub + pct from wrapping wrong */
-    .results-row { padding: 1rem 1rem; }
+
+    /* Results slide: stack the row head so percentage doesn't squish the title */
+    .results-row { padding: 1rem; }
     .results-row-head { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
     .results-pct { font-size: 2.25rem; }
     .results-bar { height: 14px; }
     .results-label { gap: 0.5rem; }
     .results-insight { font-size: 0.9rem; padding-left: 0.75rem; }
+
+    .closing-sub { max-width: 100%; }
 }
+
+/* === Extra-narrow polish (<= 480px) === */
 @media (max-width: 480px) {
     .title-meta { font-size: 0.65rem; }
     .pov-grid { gap: 0.5rem; }
     .phase-item { padding: 0.7rem 0.9rem; grid-template-columns: auto 1fr; gap: 0.6rem 0.75rem; }
     .phase-badge { grid-column: 1 / -1; min-width: 0; font-size: 0.6rem; }
     .phase-number { font-size: 1.75rem; min-width: 28px; }
-    .stat-big { font-size: clamp(5rem, 28vw, 9rem); }
+    .stat-big { font-size: clamp(4rem, 26vw, 9rem); }
     .card-hero { padding: 1.25rem; }
     .insight-block { max-width: 100%; padding: 1.1rem 1.25rem; }
     .insight-text { font-size: 0.95rem; }
@@ -159,18 +190,13 @@ body {
 }
 .slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
 
-@keyframes bar-grow {
-    from { transform: scaleX(0); }
-    to { transform: scaleX(1); }
-}
-
 /* ===========================================
    CHROME — section number, breadcrumb, progress
    =========================================== */
 .slide-number {
     position: absolute;
-    top: var(--slide-padding);
-    left: var(--slide-padding);
+    top: max(var(--slide-padding), env(safe-area-inset-top, 0));
+    left: max(var(--slide-padding), env(safe-area-inset-left, 0));
     font-family: var(--font-display);
     font-size: clamp(0.8rem, 1.2vw, 1rem);
     letter-spacing: 0.08em;
@@ -180,8 +206,8 @@ body {
 
 .breadcrumb {
     position: absolute;
-    top: var(--slide-padding);
-    right: var(--slide-padding);
+    top: max(var(--slide-padding), env(safe-area-inset-top, 0));
+    right: max(var(--slide-padding), env(safe-area-inset-right, 0));
     display: flex;
     gap: clamp(0.5rem, 1.2vw, 1rem);
     font-size: var(--small-size);
@@ -224,7 +250,9 @@ body {
     padding: 0;
 }
 .nav-dot.active { background: var(--card-bg); transform: scale(1.5); }
-.nav-dot:hover { background: var(--card-bg); }
+@media (hover: hover) and (pointer: fine) {
+    .nav-dot:hover { background: var(--card-bg); }
+}
 
 .keyboard-hint {
     position: fixed;
@@ -272,7 +300,6 @@ body {
     background: var(--card-bg);
     border-radius: 50%;
 }
-.bg-shape { z-index: 0; }
 .slide-number, .breadcrumb, .slide-inner, .card-hero, .closing-big, .closing-sub,
 .title-eyebrow, .title-main, .title-subtitle, .title-meta, .qr-card { z-index: 2; }
 
@@ -294,11 +321,13 @@ body {
     z-index: 3;
     transition: transform 0.3s var(--ease-out-expo);
 }
-.qr-card:hover { transform: translateY(-3px) scale(1.03); }
+@media (hover: hover) and (pointer: fine) {
+    .qr-card:hover { transform: translateY(-3px) scale(1.03); }
+}
 .qr-card .qr-img {
     display: block;
     width: clamp(140px, 12vw, 180px);
-    height: clamp(140px, 12vw, 180px);
+    aspect-ratio: 1;
     border-radius: 2px;
     background: #f5f3ee;
 }
@@ -336,6 +365,10 @@ body {
     height: clamp(8px, 1.2vh, 16px);
 }
 
+.title-eyebrow-wrap {
+    margin-bottom: auto;
+    margin-top: clamp(3rem, 10vh, 6rem);
+}
 .title-eyebrow {
     font-family: var(--font-display);
     font-size: clamp(0.85rem, 1.2vw, 1.1rem);
@@ -682,9 +715,11 @@ body {
     overflow: hidden;
     transition: transform 0.4s var(--ease-out-expo), border-color 0.4s;
 }
-.pov-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--card-bg);
+@media (hover: hover) and (pointer: fine) {
+    .pov-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--card-bg);
+    }
 }
 .pov-number {
     font-family: var(--font-display);
@@ -742,7 +777,9 @@ body {
     overflow: hidden;
     transition: transform 0.4s var(--ease-out-expo);
 }
-.compare-col:hover { transform: translateY(-4px); }
+@media (hover: hover) and (pointer: fine) {
+    .compare-col:hover { transform: translateY(-4px); }
+}
 .compare-col.orange { border-top: 4px solid var(--card-bg); }
 .compare-col.yellow { border-top: 4px solid var(--card-alt); }
 .compare-marker {
@@ -823,12 +860,14 @@ body {
     transition: transform 0.25s var(--ease-out-expo), border-color 0.25s, background 0.25s;
 }
 .poll-option.yellow { border-top-color: var(--card-alt); }
-.poll-option:hover:not(:disabled) {
-    transform: translateY(-4px);
-    background: rgba(255,255,255,0.06);
-    border-color: var(--card-bg);
+@media (hover: hover) and (pointer: fine) {
+    .poll-option:hover:not(:disabled) {
+        transform: translateY(-4px);
+        background: rgba(255,255,255,0.06);
+        border-color: var(--card-bg);
+    }
+    .poll-option.yellow:hover:not(:disabled) { border-color: var(--card-alt); }
 }
-.poll-option.yellow:hover:not(:disabled) { border-color: var(--card-alt); }
 .poll-option:active:not(:disabled) { transform: translateY(-1px) scale(0.99); }
 .poll-option:focus-visible { outline: 2px solid var(--card-bg); outline-offset: 2px; }
 .poll-option:disabled { cursor: default; opacity: 0.95; }
@@ -1101,9 +1140,11 @@ body {
     border-radius: 2px;
     transition: transform 0.3s var(--ease-out-expo), background 0.3s;
 }
-.phase-item:hover {
-    transform: translateX(6px);
-    background: rgba(255,255,255,0.05);
+@media (hover: hover) and (pointer: fine) {
+    .phase-item:hover {
+        transform: translateX(6px);
+        background: rgba(255,255,255,0.05);
+    }
 }
 .phase-item:nth-child(2) { border-left-color: var(--card-alt); }
 .phase-item:nth-child(3) { border-left-color: var(--text-primary); }
@@ -1209,9 +1250,11 @@ body {
     border-radius: 2px;
     transition: all 0.3s;
 }
-.ref-item:hover {
-    border-color: var(--card-bg);
-    transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+    .ref-item:hover {
+        border-color: var(--card-bg);
+        transform: translateY(-2px);
+    }
 }
 .ref-num {
     font-family: var(--font-display);
